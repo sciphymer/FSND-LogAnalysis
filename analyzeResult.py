@@ -11,7 +11,6 @@ def create_view(cursor):
 	cursor.execute("""drop view articlesView;""")
 	cursor.execute("""drop view articlesLog;""")
 
-
 	cursor.execute("""
 		create view articlesLog as
 		select substring(path from 10) as slug,count(*) as views
@@ -41,14 +40,16 @@ def create_view(cursor):
 		where status like '4%'
 		group by date;""")
 
+
 def Q1_ans(cursor):
 	print("----------------------------------------------------------")
 	print("1. What are the most popular three articles of all time?\n")
 	cursor.execute("""
 		select * from articlesView;""")
 	result = cursor.fetchall()
-	for key,value in result:
-		print("\"{}\" -- {} views".format(key,value))
+	for title, views in result:
+		print("\"{}\" -- {} views".format(title, views))
+
 
 def Q2_ans(cursor):
 	print("----------------------------------------------------------")
@@ -58,8 +59,9 @@ def Q2_ans(cursor):
 		from authorArts,articlesView
 		where authorArts.title=articlesView.title;""")
 	result = cursor.fetchall()
-	for key,value in result:
-		print("{} -- {} views".format(key,value))
+	for author, views in result:
+		print("{} -- {} views".format(author, views))
+
 
 def Q3_ans(cursor):
 	print("----------------------------------------------------------")
@@ -67,19 +69,23 @@ def Q3_ans(cursor):
 
 	cursor.execute("""
 		select date, error_rate
-		from (select log_error.date, ((log_error.count::float)*100/log_summary.count::float)::numeric(2,1) as error_rate
-			  from log_error,log_summary
-			  where log_error.date=log_summary.date) as result
+		from (select log_error.date,
+			((log_error.count::float)*100/log_summary.count::float)::numeric(2,1) as error_rate
+			from log_error,log_summary
+			where log_error.date=log_summary.date) as result
 		where error_rate>1.0;""")
 	result = cursor.fetchall()
-	for date,error in result:
+	for date, error in result:
 		temp_date = date.split()
-		print('%s -- %s%% errors \n'%(temp_date[0]+" "+temp_date[1],error))
+		print('%s -- %s%% errors \n' % (temp_date[0]+" "+temp_date[1], error))
+
 
 if __name__ == '__main__':
 	con = psycopg2.connect("dbname=news")
 	cursor = con.cursor()
-	create_view(cursor) #This function only need to run for the first time for adding views to database
+	#  This function only need to run for the first time
+	#  for adding views to database
+	create_view(cursor)
 	Q1_ans(cursor)
 	Q2_ans(cursor)
 	Q3_ans(cursor)
