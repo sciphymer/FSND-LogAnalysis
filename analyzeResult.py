@@ -37,7 +37,7 @@ def Q3_ans(cursor):
     cursor.execute("""
         select to_char(date,'Month DD,YYYY'), error_rate::numeric(2,1)
         from (select log_error.date,
-            ((log_error.count::real)*100/log_summary.count::real) as error_rate
+            log_error.count*100.0/log_summary.count as error_rate
             from log_error,log_summary
             where log_error.date=log_summary.date) as result
         where error_rate>1.0;""")
