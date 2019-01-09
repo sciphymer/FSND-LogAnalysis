@@ -30,13 +30,44 @@ Then use `vagrant up`, the VM environment will be setup for you automatically. A
 The linux environment setup using VagrantFile already included the tools of PostgreSQL, Python and also create a database named "news" automatically.
 
 ##Prepare the backend environment:
-In the linux VM program directory, before we run the data analyze program, firstly we need to load the company's data to the "news" database by running:
-```psql -d news -f newsdata.sql```
+In the linux VM program directory, before we run the data analyze program, firstly we need to load the company's data download newsdata.sql [here](https://d17h27t6h515a5.cloudfront.net/topher/2016/August/57b5f748_newsdata/newsdata.zip) to the "news" database by running:
+`psql -d news -f newsdata.sql`
 Then create database views by running:
-```psql -d news -f createViews.sql```
+`psql -d news -f createViews.sql`
 
-Afterwards we can run the program by ```python analyzeResult.py```, and start the logs analysis program and the answers to the 3 questions will be generated.
+Afterwards we can run the program by `python analyzeResult.py`, and start the logs analysis program and the answers to the 3 questions will be generated.
 You can find the expect result in the output.txt.
+
+##Statements of create view used in database:
+The following create views statements in the createViews.sql which run during the backend environment preparation:
+
+`create or replace view articlesLog as
+		select path,count(*) as views
+		from log
+		where path like '/article%'
+		group by path
+		order by views desc;`
+
+`create or replace view articlesView as
+		select articles.title, articlesLog.views
+		from articles, articlesLog
+		where articles.slug=substring(articlesLog.path from 10);`
+
+`create or replace view authorArts as
+		select authors.name, articles.title
+		from authors,articles
+		where articles.author=authors.id;`
+
+`create or replace view log_summary as
+		select time::date as date, count(*)
+		from log
+		group by date;`
+
+`create or replace view log_error as
+		select time::date as date, count(*)
+		from log
+		where status like '4%'
+		group by date;`
 
 Hope you enjoy this project!
 
